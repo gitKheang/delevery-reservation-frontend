@@ -29,6 +29,8 @@ const ReviewsPage = () => {
       id: `rev-${Date.now()}`,
       restaurantId: selectedRestaurantId,
       restaurantName: restaurant?.name ?? "Unknown",
+      userName: "You",
+      userAvatar: "",
       rating: newRating,
       comment: newComment.trim(),
       date: new Date().toISOString().split("T")[0],

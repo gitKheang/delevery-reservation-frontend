@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -144,6 +145,7 @@ const RestaurantRegisterPage = () => {
   });
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [agreedCommission, setAgreedCommission] = useState(false);
+  const applicationId = `NE-2026-${(ownerPhone.replace(/\D/g, "").slice(-4) || "1001").padStart(4, "0")}`;
 
   // ─── Validation ─────────────────────────────────────────────────────────
 
@@ -192,6 +194,9 @@ const RestaurantRegisterPage = () => {
   };
 
   const handleSubmit = async () => {
+    if (!docs.businessLicense || !docs.ownerId || !docs.storefront) {
+      return fail("Please upload all required documents");
+    }
     if (!agreedTerms) return fail("Please agree to the Terms & Conditions");
     if (!agreedCommission) return fail("Please agree to the Commission Terms");
     setLoading(true);
@@ -242,7 +247,7 @@ const RestaurantRegisterPage = () => {
         <div className="mt-5 rounded-xl bg-primary/5 px-6 py-3">
           <p className="text-xs text-muted-foreground">Application ID</p>
           <p className="text-lg font-bold tracking-wider text-primary">
-            NE-2026-{String(Math.floor(Math.random() * 9000) + 1000)}
+            {applicationId}
           </p>
         </div>
 

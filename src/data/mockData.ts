@@ -70,6 +70,7 @@ export interface CartItem {
 
 export interface Order {
   id: string;
+  restaurantId: string;
   restaurantName: string;
   restaurantImage: string;
   items: CartItem[];
@@ -107,10 +108,41 @@ export interface Review {
   id: string;
   restaurantId: string;
   restaurantName: string;
+  userName: string;
+  userAvatar: string;
   rating: number;
   comment: string;
   date: string;
+  photos?: string[];
   reply?: string;
+  menuItemId?: string;
+  menuItemName?: string;
+}
+
+// ─── Story Types ────────────────────────────────────────────────────────────
+
+export type StoryType = "image" | "video";
+
+export interface StoryItem {
+  id: string;
+  type: StoryType;
+  url: string;
+  thumbnail?: string;
+  caption?: string;
+  createdAt: string;
+  duration?: number; // seconds, for video
+}
+
+export interface Story {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  userRole: "customer" | "restaurant";
+  restaurantId?: string;
+  restaurantName?: string;
+  items: StoryItem[];
+  seen: boolean;
 }
 
 export interface PaymentMethod {
@@ -120,6 +152,35 @@ export interface PaymentMethod {
   last4?: string;
   icon: string;
   isDefault: boolean;
+}
+
+export type AddressLabelType = "home" | "work" | "other";
+
+export interface SavedAddress {
+  id: string;
+  labelType: AddressLabelType;
+  label: string;
+  recipientName: string;
+  phone: string;
+  addressLine: string;
+  details?: string;
+  note?: string;
+  latitude: number;
+  longitude: number;
+  zone: string;
+  isDefault: boolean;
+}
+
+export interface AddressSearchPlace {
+  id: string;
+  title: string;
+  subtitle: string;
+  zone: string;
+  latitude: number;
+  longitude: number;
+  etaMinutes: string;
+  markerX: number;
+  markerY: number;
 }
 
 export interface AppNotification {
@@ -524,6 +585,7 @@ export const mockReservations: Reservation[] = [
 export const mockOrders: Order[] = [
   {
     id: "ord1",
+    restaurantId: "1",
     restaurantName: "Malis Restaurant",
     restaurantImage: restaurant1,
     items: [
@@ -537,6 +599,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: "ord2",
+    restaurantId: "2",
     restaurantName: "Romdeng",
     restaurantImage: restaurant2,
     items: [
@@ -550,6 +613,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: "ord3",
+    restaurantId: "3",
     restaurantName: "Sugar Palm",
     restaurantImage: restaurant3,
     items: [{ menuItem: restaurants[2].menu[0], quantity: 1 }],
@@ -650,30 +714,208 @@ export const mockReviews: Review[] = [
     id: "rev1",
     restaurantId: "1",
     restaurantName: "Malis Restaurant",
+    userName: "Sokha Chea",
+    userAvatar: "",
     rating: 5,
     comment:
       "ហាងអាហារខ្មែរដ៏អស្ចារ្យ! The Fish Amok here is the best in Phnom Penh. Amazing atmosphere and service!",
     date: "2026-01-15",
+    photos: [food1],
     reply:
       "អរគុណ! Thank you for your kind words! We look forward to welcoming you again.",
+    menuItemId: "m1",
+    menuItemName: "Fish Amok",
   },
   {
     id: "rev2",
     restaurantId: "2",
     restaurantName: "Romdeng",
+    userName: "Dara Pich",
+    userAvatar: "",
     rating: 4,
     comment:
       "Love the Fried Tarantula — you have to try it! Beautiful colonial setting. Great cause too.",
     date: "2026-01-10",
+    photos: [food2],
+    menuItemId: "m6",
+    menuItemName: "Fried Tarantula",
   },
   {
     id: "rev3",
     restaurantId: "3",
     restaurantName: "Sugar Palm",
+    userName: "Srey Leak Ny",
+    userAvatar: "",
     rating: 5,
     comment:
       "Best Bai Sach Chrouk in the city! Reminds me of my grandmother's cooking. ពិតជាឆ្ងាញ់!",
     date: "2026-01-05",
+    menuItemId: "m10",
+    menuItemName: "Bai Sach Chrouk",
+  },
+  {
+    id: "rev4",
+    restaurantId: "1",
+    restaurantName: "Malis Restaurant",
+    userName: "Vanna Ros",
+    userAvatar: "",
+    rating: 4,
+    comment:
+      "The Lok Lak is perfectly seasoned with Kampot pepper. Great service and beautiful presentation.",
+    date: "2026-02-01",
+    photos: [food1],
+    menuItemId: "m2",
+    menuItemName: "Lok Lak",
+  },
+  {
+    id: "rev5",
+    restaurantId: "4",
+    restaurantName: "Sovanna BBQ",
+    userName: "Sokha Chea",
+    userAvatar: "",
+    rating: 5,
+    comment:
+      "Best BBQ spot by the riverside! The beef skewers are incredible. Perfect with an Angkor beer.",
+    date: "2026-02-10",
+    photos: [food4],
+    menuItemId: "m14",
+    menuItemName: "BBQ Beef Skewers",
+  },
+];
+
+// ─── Stories ────────────────────────────────────────────────────────────────
+
+export const mockStories: Story[] = [
+  {
+    id: "story1",
+    userId: "u4",
+    userName: "Malis Restaurant",
+    userAvatar: "",
+    userRole: "restaurant",
+    restaurantId: "1",
+    restaurantName: "Malis Restaurant",
+    items: [
+      {
+        id: "si1",
+        type: "image",
+        url: restaurant1,
+        caption: "Fresh Fish Amok prepared with love today! 🐟✨",
+        createdAt: "2026-02-19T08:00:00",
+      },
+      {
+        id: "si2",
+        type: "image",
+        url: food1,
+        caption: "Our chef's special lunch set — only $5.99! Limited time 🔥",
+        createdAt: "2026-02-19T10:30:00",
+      },
+    ],
+    seen: false,
+  },
+  {
+    id: "story2",
+    userId: "u5",
+    userName: "Romdeng",
+    userAvatar: "",
+    userRole: "restaurant",
+    restaurantId: "2",
+    restaurantName: "Romdeng",
+    items: [
+      {
+        id: "si3",
+        type: "image",
+        url: restaurant2,
+        caption: "Beautiful evening at our courtyard garden 🌿",
+        createdAt: "2026-02-19T17:00:00",
+      },
+      {
+        id: "si4",
+        type: "image",
+        url: food2,
+        caption: "Dare to try our famous Fried Tarantula? 🕷️😋",
+        createdAt: "2026-02-19T17:30:00",
+      },
+    ],
+    seen: false,
+  },
+  {
+    id: "story3",
+    userId: "u1",
+    userName: "Sokha",
+    userAvatar: "",
+    userRole: "customer",
+    items: [
+      {
+        id: "si5",
+        type: "image",
+        url: food3,
+        caption: "Amazing dinner at Sugar Palm tonight! 😍",
+        createdAt: "2026-02-18T20:00:00",
+      },
+    ],
+    seen: false,
+  },
+  {
+    id: "story4",
+    userId: "u-r3",
+    userName: "Sugar Palm",
+    userAvatar: "",
+    userRole: "restaurant",
+    restaurantId: "3",
+    restaurantName: "Sugar Palm",
+    items: [
+      {
+        id: "si6",
+        type: "image",
+        url: restaurant3,
+        caption: "New balcony seating now open! Come enjoy the view 🌅",
+        createdAt: "2026-02-19T09:00:00",
+      },
+    ],
+    seen: true,
+  },
+  {
+    id: "story5",
+    userId: "u2",
+    userName: "Dara",
+    userAvatar: "",
+    userRole: "customer",
+    items: [
+      {
+        id: "si7",
+        type: "image",
+        url: food4,
+        caption: "BBQ night with friends at Sovanna! 🥩🔥",
+        createdAt: "2026-02-18T19:00:00",
+      },
+    ],
+    seen: true,
+  },
+  {
+    id: "story6",
+    userId: "u-r4",
+    userName: "Sovanna BBQ",
+    userAvatar: "",
+    userRole: "restaurant",
+    restaurantId: "4",
+    restaurantName: "Sovanna BBQ",
+    items: [
+      {
+        id: "si8",
+        type: "image",
+        url: restaurant4,
+        caption: "Weekend special: Buy 1 Get 1 on all skewers! 🎉",
+        createdAt: "2026-02-19T11:00:00",
+      },
+      {
+        id: "si9",
+        type: "image",
+        url: food4,
+        caption: "Our signature Grilled Pork Ribs — now with palm sugar glaze!",
+        createdAt: "2026-02-19T12:00:00",
+      },
+    ],
+    seen: false,
   },
 ];
 
@@ -708,6 +950,154 @@ export const mockPaymentMethods: PaymentMethod[] = [
     last4: "4242",
     icon: "💳",
     isDefault: false,
+  },
+];
+
+// ─── Customer Addresses (Mock) ──────────────────────────────────────────────
+
+export const mockSavedAddresses: SavedAddress[] = [
+  {
+    id: "addr1",
+    labelType: "home",
+    label: "Home",
+    recipientName: "Sokha Chea",
+    phone: "+855 12 345 678",
+    addressLine:
+      "PPP3 Office, Lum Village, Sangkat Poipet, Krong Poipet, Banteay Meanchey",
+    details: "Near blue canal road, opposite PPP NEW",
+    note: "Call on arrival. Security at gate.",
+    latitude: 13.6507,
+    longitude: 102.5605,
+    zone: "Poipet Border Canal",
+    isDefault: true,
+  },
+  {
+    id: "addr2",
+    labelType: "work",
+    label: "Office",
+    recipientName: "Sokha Chea",
+    phone: "+855 12 345 678",
+    addressLine:
+      "999 POIPET BUILDING, National Road 5, Krong Poipet, Banteay Meanchey",
+    details: "3rd Floor, Admin Office",
+    note: "Deliver before 6:00 PM.",
+    latitude: 13.6588,
+    longitude: 102.563,
+    zone: "Poipet North Block",
+    isDefault: false,
+  },
+];
+
+export const mockAddressSearchPlaces: AddressSearchPlace[] = [
+  {
+    id: "place1",
+    title: "PPP3 Office",
+    subtitle: "Border canal road, Lum Village, Krong Poipet",
+    zone: "Poipet Border Canal",
+    latitude: 13.6507,
+    longitude: 102.5605,
+    etaMinutes: "10-15 min",
+    markerX: 35,
+    markerY: 76,
+  },
+  {
+    id: "place2",
+    title: "999 POIPET BUILDING",
+    subtitle: "North canal road, Krong Poipet",
+    zone: "Poipet North Block",
+    latitude: 13.6588,
+    longitude: 102.563,
+    etaMinutes: "12-18 min",
+    markerX: 49,
+    markerY: 19,
+  },
+  {
+    id: "place3",
+    title: "The Patriot Hairstudio",
+    subtitle: "West lane, Lum Village, Krong Poipet",
+    zone: "Poipet West Lane",
+    latitude: 13.6569,
+    longitude: 102.5574,
+    etaMinutes: "12-18 min",
+    markerX: 24,
+    markerY: 34,
+  },
+  {
+    id: "place4",
+    title: "Las Vegas Club Poipet",
+    subtitle: "Canal-side avenue, Krong Poipet",
+    zone: "Poipet Central Canal",
+    latitude: 13.6548,
+    longitude: 102.5602,
+    etaMinutes: "11-16 min",
+    markerX: 41,
+    markerY: 47,
+  },
+  {
+    id: "place5",
+    title: "Good Time",
+    subtitle: "Market lane east side, Krong Poipet",
+    zone: "Poipet Market Lane",
+    latitude: 13.6532,
+    longitude: 102.5645,
+    etaMinutes: "9-14 min",
+    markerX: 63,
+    markerY: 58,
+  },
+  {
+    id: "place6",
+    title: "KOP INDONESIA",
+    subtitle: "Commercial row by canal, Krong Poipet",
+    zone: "Poipet Commercial Row",
+    latitude: 13.6538,
+    longitude: 102.5638,
+    etaMinutes: "9-14 min",
+    markerX: 57,
+    markerY: 55,
+  },
+  {
+    id: "place7",
+    title: "Gold Planet Casino & Resort",
+    subtitle: "East block, Krong Poipet",
+    zone: "Poipet East Block",
+    latitude: 13.6558,
+    longitude: 102.568,
+    etaMinutes: "14-20 min",
+    markerX: 86,
+    markerY: 38,
+  },
+  {
+    id: "place8",
+    title: "One Budget Hotel",
+    subtitle: "West side road, near border line",
+    zone: "Poipet Border West",
+    latitude: 13.652,
+    longitude: 102.5578,
+    etaMinutes: "13-19 min",
+    markerX: 25,
+    markerY: 64,
+  },
+  {
+    id: "place9",
+    title: "Resto Dapur Gen-Z",
+    subtitle: "Northern street, Krong Poipet",
+    zone: "Poipet North Street",
+    latitude: 13.6601,
+    longitude: 102.5654,
+    etaMinutes: "13-19 min",
+    markerX: 71,
+    markerY: 10,
+  },
+  {
+    id: "place10",
+    title: "PPP NEW",
+    subtitle: "South border lane, Krong Poipet",
+    zone: "Poipet South Border",
+    latitude: 13.6489,
+    longitude: 102.5596,
+    etaMinutes: "11-16 min",
+    markerX: 31,
+    markerY: 87,
   },
 ];
 
@@ -954,6 +1344,7 @@ export const mockPlatformStats: PlatformStats = {
 export const mockOwnerOrders: Order[] = [
   {
     id: "oo1",
+    restaurantId: "1",
     restaurantName: "Malis Restaurant",
     restaurantImage: restaurant1,
     items: [
@@ -967,6 +1358,7 @@ export const mockOwnerOrders: Order[] = [
   },
   {
     id: "oo2",
+    restaurantId: "1",
     restaurantName: "Malis Restaurant",
     restaurantImage: restaurant1,
     items: [{ menuItem: restaurants[0].menu[3], quantity: 3 }],
@@ -977,6 +1369,7 @@ export const mockOwnerOrders: Order[] = [
   },
   {
     id: "oo3",
+    restaurantId: "1",
     restaurantName: "Malis Restaurant",
     restaurantImage: restaurant1,
     items: [
@@ -990,6 +1383,7 @@ export const mockOwnerOrders: Order[] = [
   },
   {
     id: "oo4",
+    restaurantId: "1",
     restaurantName: "Malis Restaurant",
     restaurantImage: restaurant1,
     items: [{ menuItem: restaurants[0].menu[1], quantity: 2 }],
@@ -1000,6 +1394,7 @@ export const mockOwnerOrders: Order[] = [
   },
   {
     id: "oo5",
+    restaurantId: "1",
     restaurantName: "Malis Restaurant",
     restaurantImage: restaurant1,
     items: [

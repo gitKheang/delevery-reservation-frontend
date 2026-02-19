@@ -13,6 +13,11 @@ const EditProfilePage = () => {
   const [phone, setPhone] = useState(user?.phone || "");
 
   const handleSave = () => {
+    if (!user) {
+      toast.error("Please sign in to update profile");
+      navigate("/login");
+      return;
+    }
     updateProfile({ name, email, phone });
     toast.success("Profile updated! ✓");
     navigate(-1);

@@ -70,7 +70,7 @@ const AdminDashboardPage = () => {
             </h1>
           </div>
           <button
-            onClick={() => navigate("/notifications")}
+            onClick={() => navigate("/admin/notifications")}
             className="relative rounded-full bg-white/15 p-2.5"
           >
             <Bell size={20} className="text-white" />

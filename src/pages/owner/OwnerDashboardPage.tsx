@@ -194,6 +194,7 @@ const OwnerDashboardPage = () => {
             { label: "Manage Menu", path: "/owner/menu", emoji: "📋" },
             { label: "Reservations", path: "/owner/reservations", emoji: "📅" },
             { label: "Campaigns", path: "/owner/campaigns", emoji: "📢" },
+            { label: "Stories", path: "/owner/stories", emoji: "🎥" },
             { label: "QR Code", path: "/owner/qr-code", emoji: "📱" },
           ].map((action) => (
             <button

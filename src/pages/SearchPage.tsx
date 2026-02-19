@@ -3,6 +3,7 @@ import { Search, ArrowLeft, SlidersHorizontal } from "lucide-react";
 import { restaurants } from "@/data/mockData";
 import RestaurantCard from "@/components/RestaurantCard";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const SearchPage = () => {
   const [query, setQuery] = useState("");
@@ -38,7 +39,10 @@ const SearchPage = () => {
             autoFocus
           />
         </div>
-        <button className="rounded-xl bg-card p-2.5 shadow-sm">
+        <button
+          onClick={() => toast.info("Advanced filters are coming soon")}
+          className="rounded-xl bg-card p-2.5 shadow-sm"
+        >
           <SlidersHorizontal size={18} className="text-foreground" />
         </button>
       </div>

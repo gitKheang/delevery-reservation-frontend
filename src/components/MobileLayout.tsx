@@ -14,13 +14,28 @@ const hideNavRoutes = [
   "/privacy",
 ];
 
+const hideNavPrefixRoutes = [
+  "/settings/addresses/search",
+  "/settings/addresses/map",
+  "/settings/addresses/new",
+];
+
 interface MobileLayoutProps {
   children: ReactNode;
 }
 
 const MobileLayout = ({ children }: MobileLayoutProps) => {
   const location = useLocation();
-  const showNav = !hideNavRoutes.includes(location.pathname);
+  const isAddressEditRoute = /^\/settings\/addresses\/[^/]+\/edit$/.test(
+    location.pathname,
+  );
+  const shouldHideByPrefix = hideNavPrefixRoutes.some((route) =>
+    location.pathname.startsWith(route),
+  );
+  const showNav =
+    !hideNavRoutes.includes(location.pathname) &&
+    !shouldHideByPrefix &&
+    !isAddressEditRoute;
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background">

@@ -7,19 +7,35 @@ import {
   Trash2,
   ShoppingBag,
   Check,
+  MapPin,
+  ChevronRight,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-import { mockPaymentMethods, mockPromotions } from "@/data/mockData";
+import { useAddress } from "@/context/AddressContext";
+import { useOrder } from "@/context/OrderContext";
+import { usePayment } from "@/context/PaymentContext";
+import { mockPromotions, restaurants } from "@/data/mockData";
 import { toast } from "sonner";
+
+const isPromoExpired = (expiresAt: string) => {
+  const expiry = new Date(expiresAt);
+  if (Number.isNaN(expiry.getTime())) return false;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(expiresAt)) {
+    expiry.setHours(23, 59, 59, 999);
+  }
+  return expiry.getTime() < Date.now();
+};
 
 const CartPage = () => {
   const navigate = useNavigate();
   const { items, updateQuantity, removeItem, clearCart, total, itemCount } =
     useCart();
+  const { selectedAddress } = useAddress();
+  const { addOrder } = useOrder();
+  const { methods: paymentMethods, setDefaultMethod } = usePayment();
+  const selectedPaymentId =
+    paymentMethods.find((p) => p.isDefault)?.id ?? paymentMethods[0]?.id ?? "";
 
-  const [selectedPayment, setSelectedPayment] = useState(
-    mockPaymentMethods.find((p) => p.isDefault)?.id ?? mockPaymentMethods[0].id,
-  );
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [promoDiscount, setPromoDiscount] = useState(0);
@@ -36,7 +52,7 @@ const CartPage = () => {
       toast.error("Invalid promo code");
       return;
     }
-    if (new Date(promo.expiresAt) < new Date()) {
+    if (isPromoExpired(promo.expiresAt)) {
       toast.error("This promo code has expired");
       return;
     }
@@ -53,8 +69,55 @@ const CartPage = () => {
   };
 
   const handleCheckout = () => {
-    const pm = mockPaymentMethods.find((p) => p.id === selectedPayment);
-    toast.success(`Order placed via ${pm?.label}! 🎉`);
+    if (!selectedAddress) {
+      toast.error("Please choose a delivery address");
+      navigate("/settings/addresses?select=1&from=/cart");
+      return;
+    }
+    if (!selectedPaymentId) {
+      toast.error("Please add a payment method");
+      return;
+    }
+
+    const restaurantIds = Array.from(
+      new Set(
+        items
+          .map((cartItem) =>
+            restaurants.find((r) =>
+              r.menu.some((menuItem) => menuItem.id === cartItem.menuItem.id),
+            )?.id,
+          )
+          .filter((id): id is string => Boolean(id)),
+      ),
+    );
+    if (restaurantIds.length !== 1) {
+      toast.error("Please checkout one restaurant at a time");
+      return;
+    }
+
+    const checkoutRestaurant = restaurants.find((r) => r.id === restaurantIds[0]);
+    if (!checkoutRestaurant) {
+      toast.error("Restaurant not found for selected items");
+      return;
+    }
+
+    addOrder({
+      restaurantId: checkoutRestaurant.id,
+      restaurantName: checkoutRestaurant.name,
+      restaurantImage: checkoutRestaurant.image,
+      items: items.map((item) => ({
+        menuItem: item.menuItem,
+        quantity: item.quantity,
+      })),
+      total: Number(grandTotal.toFixed(2)),
+      status: "preparing",
+      estimatedTime: "20-30 min",
+    });
+
+    const pm = paymentMethods.find((p) => p.id === selectedPaymentId);
+    toast.success(
+      `Order placed to ${selectedAddress.label} via ${pm?.label}! 🎉`,
+    );
     clearCart();
     navigate("/orders");
   };
@@ -101,8 +164,45 @@ const CartPage = () => {
         </button>
       </div>
 
+      {/* Delivery Address */}
+      <div className="mx-5 rounded-2xl bg-card p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+              <MapPin size={15} className="text-primary" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">
+                Delivery Address
+              </p>
+              {selectedAddress ? (
+                <>
+                  <p className="mt-0.5 text-sm font-bold text-card-foreground">
+                    {selectedAddress.label}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedAddress.addressLine}
+                  </p>
+                </>
+              ) : (
+                <p className="mt-0.5 text-sm font-semibold text-destructive">
+                  No address selected
+                </p>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => navigate("/settings/addresses?select=1&from=/cart")}
+            className="flex items-center gap-1 text-xs font-semibold text-primary"
+          >
+            Change
+            <ChevronRight size={14} />
+          </button>
+        </div>
+      </div>
+
       {/* Cart Items */}
-      <div className="space-y-3 px-5">
+      <div className="mt-4 space-y-3 px-5">
         {items.map((item) => (
           <div
             key={item.menuItem.id}
@@ -239,12 +339,12 @@ const CartPage = () => {
           Payment Method
         </h3>
         <div className="mt-2 space-y-2">
-          {mockPaymentMethods.map((pm) => (
+          {paymentMethods.map((pm) => (
             <button
               key={pm.id}
-              onClick={() => setSelectedPayment(pm.id)}
+              onClick={() => setDefaultMethod(pm.id)}
               className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-all ${
-                selectedPayment === pm.id
+                selectedPaymentId === pm.id
                   ? "border-2 border-primary bg-primary/5"
                   : "border border-border bg-background"
               }`}
@@ -261,7 +361,7 @@ const CartPage = () => {
                   )}
                 </p>
               </div>
-              {selectedPayment === pm.id && (
+              {selectedPaymentId === pm.id && (
                 <Check size={16} className="text-primary" />
               )}
             </button>

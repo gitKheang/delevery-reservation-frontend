@@ -1,45 +1,30 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, CreditCard, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-
-interface PaymentMethod {
-  id: string;
-  type: "visa" | "mastercard" | "amex";
-  last4: string;
-  expiry: string;
-  isDefault: boolean;
-}
-
-const initialMethods: PaymentMethod[] = [
-  {
-    id: "1",
-    type: "visa",
-    last4: "4242",
-    expiry: "12/25",
-    isDefault: true,
-  },
-  {
-    id: "2",
-    type: "mastercard",
-    last4: "8888",
-    expiry: "06/26",
-    isDefault: false,
-  },
-];
+import { usePayment } from "@/context/PaymentContext";
 
 const PaymentMethodsPage = () => {
   const navigate = useNavigate();
-  const [methods, setMethods] = useState<PaymentMethod[]>(initialMethods);
+  const { methods, setDefaultMethod, removeMethod, addMockCardMethod } =
+    usePayment();
 
   const handleDelete = (id: string) => {
-    setMethods(methods.filter((m) => m.id !== id));
+    if (methods.length <= 1) {
+      toast.error("At least one payment method is required");
+      return;
+    }
+    removeMethod(id);
     toast.success("Payment method removed");
   };
 
   const handleSetDefault = (id: string) => {
-    setMethods(methods.map((m) => ({ ...m, isDefault: m.id === id })));
+    setDefaultMethod(id);
     toast.success("Default payment method updated");
+  };
+
+  const handleAddMethod = () => {
+    const method = addMockCardMethod();
+    toast.success(`Mock card •••• ${method.last4} added`);
   };
 
   return (
@@ -52,7 +37,10 @@ const PaymentMethodsPage = () => {
           </button>
           <h1 className="text-lg font-bold text-foreground">Payment Methods</h1>
         </div>
-        <button className="flex items-center gap-1 text-sm font-medium text-primary">
+        <button
+          onClick={handleAddMethod}
+          className="flex items-center gap-1 text-sm font-medium text-primary"
+        >
           <Plus size={16} />
           Add
         </button>
@@ -69,8 +57,9 @@ const PaymentMethodsPage = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold capitalize text-card-foreground">
-                      {method.type} •••• {method.last4}
+                    <h3 className="text-sm font-semibold text-card-foreground">
+                      {method.label}
+                      {method.last4 && <span> •••• {method.last4}</span>}
                     </h3>
                     {method.isDefault && (
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
@@ -79,7 +68,11 @@ const PaymentMethodsPage = () => {
                     )}
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Expires {method.expiry}
+                    {method.type === "cash"
+                      ? "Pay when rider arrives"
+                      : method.type === "wallet"
+                        ? "Digital wallet"
+                        : "Card payment"}
                   </p>
                 </div>
               </div>

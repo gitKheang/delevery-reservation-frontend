@@ -2,13 +2,41 @@ import { useState, useRef } from "react";
 import { Search, Bell, MapPin, ChevronRight } from "lucide-react";
 import { restaurants, categories, mockPromotions } from "@/data/mockData";
 import RestaurantCard from "@/components/RestaurantCard";
+import StoriesBar from "@/components/StoriesBar";
 import { useNavigate } from "react-router-dom";
+import { useAddress } from "@/context/AddressContext";
 
 const HomePage = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [activePromo, setActivePromo] = useState(0);
   const navigate = useNavigate();
+  const { selectedAddress } = useAddress();
   const promoRef = useRef<HTMLDivElement>(null);
+
+  const handlePromoScroll = () => {
+    const container = promoRef.current;
+    if (!container) return;
+
+    const firstChild = container.children[0] as HTMLElement | undefined;
+    const secondChild = container.children[1] as HTMLElement | undefined;
+    if (!firstChild) return;
+
+    const fallbackGap = 12; // gap-3
+    const step = secondChild
+      ? secondChild.offsetLeft - firstChild.offsetLeft
+      : firstChild.offsetWidth + fallbackGap;
+    if (step <= 0) return;
+
+    const nextIndex = Math.round(container.scrollLeft / step);
+    const clampedIndex = Math.max(
+      0,
+      Math.min(mockPromotions.length - 1, nextIndex),
+    );
+
+    if (clampedIndex !== activePromo) {
+      setActivePromo(clampedIndex);
+    }
+  };
 
   const filteredRestaurants =
     activeCategory === "all"
@@ -26,9 +54,14 @@ const HomePage = () => {
             <p className="text-xs font-medium text-primary-foreground/70">
               Deliver to
             </p>
-            <button className="flex items-center gap-1 text-sm font-semibold text-primary-foreground">
+            <button
+              onClick={() => navigate("/settings/addresses?select=1&from=/")}
+              className="flex items-center gap-1 text-sm font-semibold text-primary-foreground"
+            >
               <MapPin size={14} />
-              123 BKK1, Phnom Penh
+              <span className="max-w-[200px] truncate">
+                {selectedAddress?.addressLine ?? "Choose delivery address"}
+              </span>
               <ChevronRight size={14} />
             </button>
           </div>
@@ -53,6 +86,9 @@ const HomePage = () => {
         </button>
       </div>
 
+      {/* Stories from followed restaurants */}
+      <StoriesBar />
+
       {/* Promo Carousel */}
       <div className="px-5 pt-5">
         <div className="flex items-center justify-between">
@@ -67,15 +103,16 @@ const HomePage = () => {
         <div className="relative mt-3">
           <div
             ref={promoRef}
+            onScroll={handlePromoScroll}
             className="flex snap-x snap-mandatory gap-3 overflow-x-auto scrollbar-hide"
           >
             {mockPromotions.map((promo, index) => {
               const emojis = ["💝", "🍰", "🎁", "🔥"];
               const gradients = [
                 "from-accent to-primary",
-                "from-pink-500 to-purple-500",
-                "from-emerald-500 to-teal-500",
-                "from-orange-500 to-red-500",
+                "from-red-600 to-primary",
+                "from-primary to-yellow-500",
+                "from-accent to-red-700",
               ];
               return (
                 <div
@@ -112,10 +149,14 @@ const HomePage = () => {
                 key={i}
                 onClick={() => {
                   setActivePromo(i);
-                  promoRef.current?.children[i]?.scrollIntoView({
+                  const container = promoRef.current;
+                  const target = container?.children[i] as
+                    | HTMLElement
+                    | undefined;
+                  if (!container || !target) return;
+                  container.scrollTo({
+                    left: target.offsetLeft,
                     behavior: "smooth",
-                    inline: "center",
-                    block: "nearest",
                   });
                 }}
                 className={`h-1.5 rounded-full transition-all ${
@@ -154,7 +195,12 @@ const HomePage = () => {
       <div className="mt-6 px-5">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-foreground">Featured</h2>
-          <button className="text-xs font-medium text-primary">See all</button>
+          <button
+            onClick={() => navigate("/search")}
+            className="text-xs font-medium text-primary"
+          >
+            See all
+          </button>
         </div>
         <div className="mt-3 flex gap-3 overflow-x-auto scrollbar-hide">
           {restaurants
@@ -171,7 +217,12 @@ const HomePage = () => {
           <h2 className="text-base font-bold text-foreground">
             Nearby Restaurants
           </h2>
-          <button className="text-xs font-medium text-primary">See all</button>
+          <button
+            onClick={() => navigate("/search")}
+            className="text-xs font-medium text-primary"
+          >
+            See all
+          </button>
         </div>
         <div className="mt-3 flex flex-col gap-3">
           {filteredRestaurants.map((r) => (

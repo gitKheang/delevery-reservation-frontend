@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface FAQ {
   question: string;
@@ -45,6 +46,24 @@ const HelpPage = () => {
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
+  const contactOptions = [
+    {
+      icon: MessageSquare,
+      label: "Live Chat",
+      onClick: () => toast.info("Live chat is available in mock mode only"),
+    },
+    {
+      icon: Phone,
+      label: "Call Us",
+      onClick: () => window.open("tel:+85523999888", "_self"),
+    },
+    {
+      icon: Mail,
+      label: "Email",
+      onClick: () => window.open("mailto:support@nhamey.com.kh", "_self"),
+    },
+  ];
+
   return (
     <div className="flex flex-col pb-24">
       {/* Header */}
@@ -57,13 +76,10 @@ const HelpPage = () => {
 
       {/* Contact Options */}
       <div className="mx-5 grid grid-cols-3 gap-3">
-        {[
-          { icon: MessageSquare, label: "Live Chat" },
-          { icon: Phone, label: "Call Us" },
-          { icon: Mail, label: "Email" },
-        ].map((option) => (
+        {contactOptions.map((option) => (
           <button
             key={option.label}
+            onClick={option.onClick}
             className="flex flex-col items-center gap-2 rounded-2xl bg-card p-4 shadow-sm"
           >
             <option.icon size={20} className="text-primary" />

@@ -15,6 +15,7 @@ import {
 import { restaurants } from "@/data/mockData";
 import type { CartItem } from "@/data/mockData";
 import { toast } from "sonner";
+import { useOrder } from "@/context/OrderContext";
 
 const timeSlots = [
   "11:00",
@@ -36,6 +37,7 @@ const timeSlots = [
 const ReservationPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addReservation } = useOrder();
   const restaurant = restaurants.find((r) => r.id === id);
 
   const [selectedDate, setSelectedDate] = useState("");
@@ -83,6 +85,25 @@ const ReservationPage = () => {
   };
 
   const handleConfirm = () => {
+    if (!selectedDate || !selectedTime || !selectedTable) {
+      toast.error("Please complete reservation details");
+      return;
+    }
+
+    addReservation({
+      restaurantId: restaurant.id,
+      restaurantName: restaurant.name,
+      restaurantImage: restaurant.image,
+      date: selectedDate,
+      time: selectedTime,
+      guests,
+      status: "confirmed",
+      tableId: selectedTable,
+      checkedIn: false,
+      deposit: depositAmount,
+      preOrder: preOrderItems.length > 0 ? preOrderItems : undefined,
+    });
+
     toast.success("Reservation confirmed! 🎉");
     navigate("/orders");
   };

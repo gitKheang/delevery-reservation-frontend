@@ -4,6 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { mockPromotions } from "@/data/mockData";
 import { toast } from "sonner";
 
+const isPromoExpired = (expiresAt: string) => {
+  const expiry = new Date(expiresAt);
+  if (Number.isNaN(expiry.getTime())) return false;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(expiresAt)) {
+    expiry.setHours(23, 59, 59, 999);
+  }
+  return expiry.getTime() < Date.now();
+};
+
 const CouponsPage = () => {
   const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -58,7 +67,7 @@ const CouponsPage = () => {
       {/* Coupons List */}
       <div className="mt-4 space-y-3 px-5">
         {mockPromotions.map((promo) => {
-          const isExpired = new Date(promo.expiresAt) < new Date();
+          const isExpired = isPromoExpired(promo.expiresAt);
           return (
             <div
               key={promo.id}

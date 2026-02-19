@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { ArrowLeft, MapPin, Clock, ChefHat, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { mockOrders, mockReservations } from "@/data/mockData";
 import type { Order, Reservation } from "@/data/mockData";
 import StatusBadge from "@/components/StatusBadge";
+import { useOrder } from "@/context/OrderContext";
 import { toast } from "sonner";
 
 const orderSteps = ["preparing", "almost_ready", "ready", "served"] as const;
@@ -70,10 +70,10 @@ const OrderTracker = ({ order }: { order: Order }) => {
 const OrdersPage = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<"orders" | "reservations">("orders");
-  const [checkedInIds, setCheckedInIds] = useState<Set<string>>(new Set());
+  const { orders, reservations, setReservationCheckedIn } = useOrder();
 
   const handleCheckIn = (res: Reservation) => {
-    setCheckedInIds((prev) => new Set(prev).add(res.id));
+    setReservationCheckedIn(res.id, true);
     toast.success(`Checked in at ${res.restaurantName}! 🎉`);
   };
 
@@ -106,7 +106,7 @@ const OrdersPage = () => {
 
       <div className="mt-4 space-y-3 px-5">
         {tab === "orders"
-          ? mockOrders.map((order) => (
+          ? orders.map((order) => (
               <div key={order.id} className="rounded-2xl bg-card p-4 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -158,11 +158,7 @@ const OrdersPage = () => {
                   </p>
                   {order.status === "completed" && (
                     <button
-                      onClick={() =>
-                        navigate(
-                          `/restaurant/${order.restaurantName.toLowerCase().replace(/\s+/g, "-")}`,
-                        )
-                      }
+                      onClick={() => navigate(`/restaurant/${order.restaurantId}`)}
                       className="text-xs font-medium text-primary"
                     >
                       Reorder
@@ -171,8 +167,8 @@ const OrdersPage = () => {
                 </div>
               </div>
             ))
-          : mockReservations.map((res) => {
-              const isCheckedIn = checkedInIds.has(res.id) || res.checkedIn;
+          : reservations.map((res) => {
+              const isCheckedIn = Boolean(res.checkedIn);
               const canCheckIn = res.status === "confirmed" && !isCheckedIn;
               return (
                 <div key={res.id} className="rounded-2xl bg-card p-4 shadow-sm">

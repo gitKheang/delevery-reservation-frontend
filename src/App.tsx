@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { AddressProvider } from "@/context/AddressContext";
+import { OrderProvider } from "@/context/OrderContext";
+import { PaymentProvider } from "@/context/PaymentContext";
 import MobileLayout from "@/components/MobileLayout";
 import RoleGuard from "@/components/RoleGuard";
 
@@ -35,6 +38,9 @@ import PrivacyPage from "@/pages/legal/PrivacyPage";
 import SettingsPage from "@/pages/settings/SettingsPage";
 import EditProfilePage from "@/pages/settings/EditProfilePage";
 import AddressesPage from "@/pages/settings/AddressesPage";
+import AddressSearchPage from "@/pages/settings/AddressSearchPage";
+import AddressMapPickerPage from "@/pages/settings/AddressMapPickerPage";
+import AddressFormPage from "@/pages/settings/AddressFormPage";
 import PaymentMethodsPage from "@/pages/settings/PaymentMethodsPage";
 import NotificationSettingsPage from "@/pages/settings/NotificationSettingsPage";
 import LanguagePage from "@/pages/settings/LanguagePage";
@@ -48,6 +54,7 @@ import OrderManagementPage from "@/pages/owner/OrderManagementPage";
 import ReservationManagementPage from "@/pages/owner/ReservationManagementPage";
 import CampaignManagementPage from "@/pages/owner/CampaignManagementPage";
 import QRCodePage from "@/pages/owner/QRCodePage";
+import StoryManagementPage from "@/pages/owner/StoryManagementPage";
 
 // Admin Pages
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
@@ -61,10 +68,13 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <CartProvider>
-          <Toaster position="top-center" richColors />
-          <MobileLayout>
-            <Routes>
+        <AddressProvider>
+          <OrderProvider>
+            <PaymentProvider>
+              <CartProvider>
+                <Toaster position="top-center" richColors />
+                <MobileLayout>
+                  <Routes>
               {/* Main Customer Routes */}
               <Route path="/" element={<HomePage />} />
               <Route path="/search" element={<SearchPage />} />
@@ -109,6 +119,19 @@ function App() {
                 element={<EditProfilePage />}
               />
               <Route path="/settings/addresses" element={<AddressesPage />} />
+              <Route
+                path="/settings/addresses/search"
+                element={<AddressSearchPage />}
+              />
+              <Route
+                path="/settings/addresses/map"
+                element={<AddressMapPickerPage />}
+              />
+              <Route path="/settings/addresses/new" element={<AddressFormPage />} />
+              <Route
+                path="/settings/addresses/:id/edit"
+                element={<AddressFormPage />}
+              />
               <Route
                 path="/settings/payment"
                 element={<PaymentMethodsPage />}
@@ -170,6 +193,14 @@ function App() {
                   </RoleGuard>
                 }
               />
+              <Route
+                path="/owner/stories"
+                element={
+                  <RoleGuard allowedRoles={["restaurant"]}>
+                    <StoryManagementPage />
+                  </RoleGuard>
+                }
+              />
 
               {/* Admin Routes */}
               <Route
@@ -223,9 +254,12 @@ function App() {
 
               {/* 404 */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </MobileLayout>
-        </CartProvider>
+                  </Routes>
+                </MobileLayout>
+              </CartProvider>
+            </PaymentProvider>
+          </OrderProvider>
+        </AddressProvider>
       </AuthProvider>
     </BrowserRouter>
   );

@@ -1,5 +1,6 @@
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const AboutPage = () => {
   const navigate = useNavigate();
@@ -68,6 +69,9 @@ const AboutPage = () => {
               onClick={() => {
                 if (label === "Terms of Service") navigate("/terms");
                 if (label === "Privacy Policy") navigate("/privacy");
+                if (label === "Open Source Licenses") {
+                  toast.info("No third-party licenses listed in this mock build");
+                }
               }}
               className={`flex w-full items-center justify-between px-4 py-3.5 ${
                 index < 2 ? "border-b border-border" : ""

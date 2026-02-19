@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 import { mockUser, mockRestaurantOwner, mockAdmin } from "@/data/mockData";
@@ -16,6 +17,8 @@ interface AuthContextType {
   ) => Promise<boolean>;
   logout: () => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
+  toggleFavorite: (restaurantId: string) => void;
+  isFavorite: (restaurantId: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,7 +33,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
 
-  const login = async (_email: string, _password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
+    void email;
+    void password;
     await new Promise((r) => setTimeout(r, 800));
     setUser(mockUser);
     setIsAuthenticated(true);
@@ -50,8 +55,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     name: string,
     email: string,
     phone: string,
-    _password: string,
+    password: string,
   ): Promise<boolean> => {
+    void password;
     await new Promise((r) => setTimeout(r, 800));
     setUser({ ...mockUser, name, email, phone });
     setIsAuthenticated(true);
@@ -67,6 +73,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (user) setUser({ ...user, ...updates });
   };
 
+  const toggleFavorite = (restaurantId: string) => {
+    if (!user) return;
+    const favs = user.favorites.includes(restaurantId)
+      ? user.favorites.filter((id) => id !== restaurantId)
+      : [...user.favorites, restaurantId];
+    setUser({ ...user, favorites: favs });
+  };
+
+  const isFavorite = (restaurantId: string) => {
+    return user?.favorites.includes(restaurantId) ?? false;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -77,6 +95,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signup,
         logout,
         updateProfile,
+        toggleFavorite,
+        isFavorite,
       }}
     >
       {children}

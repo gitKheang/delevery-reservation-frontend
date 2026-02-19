@@ -5,6 +5,15 @@ import { mockPromotions } from "@/data/mockData";
 import type { Promotion } from "@/data/mockData";
 import { toast } from "sonner";
 
+const isExpired = (expiresAt: string) => {
+  const expiry = new Date(expiresAt);
+  if (Number.isNaN(expiry.getTime())) return false;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(expiresAt)) {
+    expiry.setHours(23, 59, 59, 999);
+  }
+  return expiry.getTime() < Date.now();
+};
+
 const CampaignManagementPage = () => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Promotion[]>(mockPromotions);
@@ -50,8 +59,6 @@ const CampaignManagementPage = () => {
     setCampaigns(campaigns.filter((c) => c.id !== id));
     toast.success("Campaign deleted");
   };
-
-  const isExpired = (date: string) => new Date(date) < new Date();
 
   const typeLabel = {
     percentage: "% Off",
