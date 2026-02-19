@@ -5,11 +5,13 @@ import { useNavigate } from "react-router-dom";
 interface RestaurantCardProps {
   restaurant: Restaurant;
   variant?: "horizontal" | "vertical";
+  resultTypeLabel?: string;
 }
 
 const RestaurantCard = ({
   restaurant,
   variant = "vertical",
+  resultTypeLabel,
 }: RestaurantCardProps) => {
   const navigate = useNavigate();
 
@@ -29,11 +31,18 @@ const RestaurantCard = ({
             <h3 className="font-semibold text-card-foreground">
               {restaurant.name}
             </h3>
-            {!restaurant.isOpen && (
-              <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
-                Closed
-              </span>
-            )}
+            <div className="flex items-center gap-1.5">
+              {resultTypeLabel && (
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {resultTypeLabel}
+                </span>
+              )}
+              {!restaurant.isOpen && (
+                <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
+                  Closed
+                </span>
+              )}
+            </div>
           </div>
           <p className="text-xs text-muted-foreground">
             {restaurant.cuisine} · {restaurant.priceRange}

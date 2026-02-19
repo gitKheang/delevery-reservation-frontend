@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   Heart,
@@ -28,9 +28,11 @@ import { toast } from "sonner";
 
 const RestaurantDetailPage = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { addItem, itemCount } = useCart();
   const { toggleFavorite, isFavorite, isAuthenticated } = useAuth();
+  const requestedItemId = searchParams.get("item");
   const [activeTab, setActiveTab] = useState("menu");
   const [showStoryViewer, setShowStoryViewer] = useState(false);
 
@@ -45,6 +47,18 @@ const RestaurantDetailPage = () => {
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   const restaurant = restaurants.find((r) => r.id === id);
+
+  useEffect(() => {
+    if (!restaurant || activeTab !== "menu" || !requestedItemId) return;
+
+    const timer = window.setTimeout(() => {
+      const selectedItem = document.getElementById(`menu-item-${requestedItemId}`);
+      selectedItem?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [activeTab, requestedItemId, restaurant, id]);
+
   if (!restaurant) return <div className="p-5 pt-12">Restaurant not found</div>;
 
   // Get restaurant stories for the viewer
@@ -296,11 +310,17 @@ const RestaurantDetailPage = () => {
                   {restaurant.menu
                     .filter((m) => m.category === category)
                     .map((item) => (
-                      <MenuItemCard
+                      <div
                         key={item.id}
-                        item={item}
-                        onAdd={handleAddItem}
-                      />
+                        id={`menu-item-${item.id}`}
+                        className={
+                          requestedItemId === item.id
+                            ? "rounded-2xl ring-2 ring-primary/35"
+                            : ""
+                        }
+                      >
+                        <MenuItemCard item={item} onAdd={handleAddItem} />
+                      </div>
                     ))}
                 </div>
               </div>
